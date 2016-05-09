@@ -1,115 +1,79 @@
+package cn.sun.linear;
 import java.util.Scanner;
-public class LinearRegression {
 
-    public static double sum(double[] ar) {
-        double total = 0;
-        for (int i = 0; i < ar.length; i++) {
-            total += ar[i];
-        }
-        return total;
-    }
-    public static void main(String[] args) {
+/***
+ * very easy linear regression for y=w*x+b
+ * @author sun
+ *
+ */
 
-        System.out.print("Enter number of points: ");
-        Scanner s = new Scanner(System.in);
-        int n = s.nextInt();
+public class EasyLinear {
+	
+	
+	public static void main(String[] args){
+		
+		double[] x;      							//represent input  data (real)
+		double[] y;      							//represent output data (real)
+		
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("请输入测试序列个数:");
+		int len = scanner.nextInt();
+		x = new double[len];        				//object-instantiated
+		y = new double[len];        				//object-instantiated
+		System.out.println("请输入各个x序列:");		
+		for(int i=0; i<len; i++){
+			x[i] = scanner.nextDouble();
+		}
+		System.out.println("请输入各个y序列:");		
+		for(int i=0; i<len; i++){
+			y[i] = scanner.nextDouble();
+		}
+		
+		double[] result = linearRegression(x,y);    //for y=w*x+b to find w,b return as result
+		
+		System.out.println("*****************************************");
+		System.out.println("测试结果如下:");
+		System.out.printf("w = %.4f;  b= %.4f", result[0], result[1]);
+		System.out.println();
+		System.out.printf("最后结果符合函数： y = %.4f * x + %.4f", result[0], result[1]);
+		System.out.println();
+		System.out.println("*****************************************");
+		
+	}
 
-        double SSE = 0, SSEp = 0;
+	private static double[] linearRegression(double[] x, double[] y) {
+		double[] result = new double[2];
+		
+		double sum_x = sum(x,1);                            //order x's sum 
+		double avg_x = sum_x / x.length;                    //order x's avg
+		double[] cal_w_up = new double[x.length];           //calculate w
+		double cal_w_down = sum(x,2)-(sum_x*sum_x)/x.length;//calculate w
+		for(int i=0; i<x.length; i++){              
+			cal_w_up[i] = y[i] * (x[i] - avg_x);
+		}
+		result[0] = sum(cal_w_up,1)/cal_w_down;             //put w in the array [0] position
+		
+		double[] cal_b = new  double[x.length];
+		for(int i=0; i<x.length; i++){
+			cal_b[i] = y[i] - result[0]*x[i];
+		}
+		result[1] = sum(cal_b,1)/x.length;
+		return result;
+	}
 
-        double[] y      = new double[n];
-        double[] x      = new double[n];
-        double[] xi2    = new double[n];
-        double[] xp     = new double[n];
-        double[] xpi2   = new double[n];
-        double[] xy     = new double[n];
-        double[] xpy    = new double[n];
-        double[] yh     = new double[n];
-        double[] yph    = new double[n];
-        double[] yhp    = new double[n];
+	private static double sum(double[] array, int flag) {   //flag means whether array should be square
+		double sum = 0;
+		for(int i=0; i<array.length; i++){
+			if(flag==1){
+				sum += array[i];
+			}
+			else if(flag==2){
+				sum += array[i]*array[i];				
+			}
+			else
+				System.out.println("当计算总和时标记符号出错");
+		}
+		return sum;
+	}
 
-        System.out.print("Enter the values for x all on one line: ");
-        int index =0;
-        while (index < n){
-            x[index++] = s.nextInt();
-        }
-        s.nextLine();
-
-        System.out.print("Enter the values for y all on one line: ");
-        index = 0;
-        while (index < n){
-            y[index++] = s.nextInt();
-        }
-        s.nextLine();
-
-        for (int i = 0; i < x.length; i++) {
-            xp[i] = x[i] - sum(x)/n;
-        }
-        for (int i = 0; i < x.length; i++) {
-            xi2[i] = x[i] * x[i];
-        }
-        for (int i = 0; i < x.length; i++) {
-            xpi2[i] = xp[i] * xp[i];
-        }
-        for (int i = 0; i < x.length; i++) {
-            xy[i] = x[i] * y[i];
-        }
-        for (int i = 0; i < x.length; i++) {
-            xpy[i] = xp[i] * y[i];
-        }
-
-        double q = (n*sum(xy) - (sum(x)*sum(y))) / ((n*sum(xi2))-sum(x)*sum(x));
-        double r = (sum(y)*sum(xi2) - sum(x)*sum(xy)) / ((n*sum(xi2))-(sum(x)*sum(x)));
-        for (int i = 0; i < x.length; i++) {
-            yh[i] = x[i]*q + r;
-        }
-        System.out.println("System y = qx+r");
-        System.out.printf("S(x) = %.4f; S(y) = %.4f; S(x)^2 = %.4f; S(x^2) = %.4f; S(xy) = %.4f", sum(x), sum(y), sum(x)*sum(x), sum(xi2), sum(xy));
-        System.out.println();
-        System.out.printf("q = %.4f\nr = %.4f", q, r);
-        System.out.println();
-        System.out.print("Yh: ");
-        for (int i = 0; i < yh.length; i++) {
-            System.out.printf("%.4f", yh[i]);
-            System.out.print(", ");
-        }
-        System.out.println();
-        for (int i = 0; i < x.length; i++) {
-            SSE += Math.pow(y[i] - yh[i], 2);
-        }
-        System.out.printf("SSE = %.4f", SSE);
-        System.out.println();
-        System.out.println();
-
-        double qp = ( (sum(xy)) / (sum(xi2)) );
-        double rp = ( (sum(y)) / (n) );
-        System.out.println("System y = q'x'+r'");
-        System.out.print("Values of x' -> ");
-        for (int i = 0; i <x.length; i++) {
-            System.out.print(xp[i]);
-            System.out.print(", ");
-        }
-
-
-        for (int i = 0; i < x.length; i++) {
-            yhp[i] = xp[i]*qp + rp;
-        }
-
-        for (int i = 0; i < x.length; i++) {
-            SSEp += Math.pow(y[i] - yph[i], 2); // incorrect ?
-        }
-
-        System.out.println();
-        System.out.printf("S(x') = %.4f; S(y) = %.4f; S(x')^2 = %.4f; S(x'^2) = %.4f; S(x'y) = %.4f", sum(xp), sum(y), sum(xp)*sum(xp), sum(xpi2), sum(xpy));
-        System.out.println();
-        System.out.printf("q' = %.4f\nr' = %.4f", qp, rp );
-        System.out.println();
-        System.out.print("Yh' = ");
-        for (int i =0 ; i < yhp.length;i++ ) {
-            System.out.printf("%.4f", yhp[i]);
-            System.out.print(", ");
-        }
-        System.out.println();
-        System.out.printf("SSE = %.4f", SSE);
-        System.out.println();
-    }
 }
